@@ -14,6 +14,7 @@
 package testutil
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -32,6 +33,10 @@ func (u untypedCollector) Describe(c chan<- *prometheus.Desc) {
 }
 
 func (u untypedCollector) Collect(c chan<- prometheus.Metric) {
+	u.CollectWithContext(context.Background(), c)
+}
+
+func (u untypedCollector) CollectWithContext(_ context.Context, c chan<- prometheus.Metric) {
 	c <- prometheus.MustNewConstMetric(
 		prometheus.NewDesc("name", "help", nil, nil),
 		prometheus.UntypedValue,

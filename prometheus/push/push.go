@@ -266,7 +266,7 @@ func (p *Pusher) push(ctx context.Context, method string) error {
 	if p.error != nil {
 		return p.error
 	}
-	mfs, err := p.gatherers.Gather()
+	mfs, err := p.gatherers.GatherWithContext(ctx)
 	if err != nil {
 		return err
 	}

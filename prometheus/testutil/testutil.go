@@ -48,6 +48,7 @@ import (
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"github.com/prometheus/common/model"
+	"golang.org/x/net/context"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -229,7 +230,7 @@ func CollectAndFormat(c prometheus.Collector, format expfmt.FormatType, metricNa
 		return nil, fmt.Errorf("registering collector failed: %w", err)
 	}
 
-	gotFiltered, err := reg.Gather()
+	gotFiltered, err := reg.GatherWithContext(context.TODO())
 	if err != nil {
 		return nil, fmt.Errorf("gathering metrics failed: %w", err)
 	}

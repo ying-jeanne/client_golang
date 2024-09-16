@@ -91,7 +91,7 @@ func testWriteSummary(t *testing.T, useTags bool) {
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(sumVec)
 
-	mfs, err := reg.Gather()
+	mfs, err := reg.GatherWithContext(context.Background())
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
@@ -187,7 +187,7 @@ func testWriteHistogram(t *testing.T, useTags bool) {
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(histVec)
 
-	mfs, err := reg.Gather()
+	mfs, err := reg.GatherWithContext(context.Background())
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
@@ -276,7 +276,7 @@ prefix.name;constname=constvalue;labelname=val2 1 1477043
 		want = wantTagged
 	}
 
-	mfs, err := reg.Gather()
+	mfs, err := reg.GatherWithContext(context.Background())
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}

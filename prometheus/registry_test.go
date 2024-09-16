@@ -21,6 +21,7 @@ package prometheus_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -46,8 +47,12 @@ type uncheckedCollector struct {
 }
 
 func (u uncheckedCollector) Describe(_ chan<- *prometheus.Desc) {}
-func (u uncheckedCollector) Collect(c chan<- prometheus.Metric) {
+func (u uncheckedCollector) CollectWithContext(_ context.Context, c chan<- prometheus.Metric) {
 	u.c.Collect(c)
+}
+
+func (u uncheckedCollector) Collect(c chan<- prometheus.Metric) {
+	u.CollectWithContext(context.Background(), c)
 }
 
 func testHandler(t testing.TB) {
@@ -1113,11 +1118,15 @@ func (m *collidingCollector) Describe(desc chan<- *prometheus.Desc) {
 }
 
 // Collect satisfies part of the prometheus.Collector interface.
-func (m *collidingCollector) Collect(metric chan<- prometheus.Metric) {
+func (m *collidingCollector) CollectWithContext(_ context.Context, metric chan<- prometheus.Metric) {
 	m.a.Collect(metric)
 	m.b.Collect(metric)
 	m.c.Collect(metric)
 	m.d.Collect(metric)
+}
+
+func (m *collidingCollector) Collect(metric chan<- prometheus.Metric) {
+	m.CollectWithContext(context.Background(), metric)
 }
 
 // TestAlreadyRegistered will fail with the old, weaker hash function.  It is
@@ -1187,6 +1196,10 @@ type tGatherer struct {
 }
 
 func (g *tGatherer) Gather() (_ []*dto.MetricFamily, done func(), err error) {
+	return g.GatherWithContext(context.Background())
+}
+
+func (g *tGatherer) GatherWithContext(_ context.Context) (_ []*dto.MetricFamily, done func(), err error) {
 	name := "g1"
 	val := 1.0
 	return []*dto.MetricFamily{
@@ -1295,13 +1308,17 @@ func ExampleRegistry_grouping() {
 }
 
 type customCollector struct {
-	collectFunc func(ch chan<- prometheus.Metric)
+	collectWithFunc func(ctx context.Context, ch chan<- prometheus.Metric)
 }
 
 func (co *customCollector) Describe(_ chan<- *prometheus.Desc) {}
 
 func (co *customCollector) Collect(ch chan<- prometheus.Metric) {
-	co.collectFunc(ch)
+	co.CollectWithContext(context.Background(), ch)
+}
+
+func (co *customCollector) CollectWithContext(ctx context.Context, ch chan<- prometheus.Metric) {
+	co.collectWithFunc(ctx, ch)
 }
 
 // TestCheckMetricConsistency
@@ -1313,7 +1330,7 @@ func TestCheckMetricConsistency(t *testing.T) {
 	metric := prometheus.MustNewConstMetric(desc, prometheus.CounterValue, 1)
 
 	validCollector := &customCollector{
-		collectFunc: func(ch chan<- prometheus.Metric) {
+		collectWithFunc: func(ctx context.Context, ch chan<- prometheus.Metric) {
 			ch <- prometheus.NewMetricWithTimestamp(timestamp.Add(-1*time.Minute), metric)
 			ch <- prometheus.NewMetricWithTimestamp(timestamp, metric)
 		},
@@ -1326,7 +1343,7 @@ func TestCheckMetricConsistency(t *testing.T) {
 	reg.Unregister(validCollector)
 
 	invalidCollector := &customCollector{
-		collectFunc: func(ch chan<- prometheus.Metric) {
+		collectWithFunc: func(ctx context.Context, ch chan<- prometheus.Metric) {
 			ch <- prometheus.NewMetricWithTimestamp(timestamp, metric)
 			ch <- prometheus.NewMetricWithTimestamp(timestamp, metric)
 		},

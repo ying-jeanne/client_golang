@@ -15,6 +15,7 @@ package push
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -78,7 +79,7 @@ func TestPush(t *testing.T) {
 	reg.MustRegister(metric1)
 	reg.MustRegister(metric2)
 
-	mfs, err := reg.Gather()
+	mfs, err := reg.GatherWithContext(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

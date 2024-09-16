@@ -123,7 +123,7 @@ func assetMetricAndExemplars(
 ) {
 	t.Helper()
 
-	mfs, err := reg.Gather()
+	mfs, err := reg.GatherWithContext(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -239,7 +239,7 @@ func TestClientMiddlewareAPI_WithRequestContext(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	mfs, err := reg.Gather()
+	mfs, err := reg.GatherWithContext(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

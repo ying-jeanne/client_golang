@@ -13,6 +13,8 @@
 
 package prometheus
 
+import "context"
+
 // Collector is the interface implemented by anything that can be used by
 // Prometheus to collect metrics. A Collector has to be registered for
 // collection. See Registerer.Register.
@@ -60,6 +62,8 @@ type Collector interface {
 	// of total performance of rendering all registered metrics. Ideally,
 	// Collector implementations support concurrent readers.
 	Collect(chan<- Metric)
+
+	CollectWithContext(context.Context, chan<- Metric)
 }
 
 // DescribeByCollect is a helper to implement the Describe method of a custom
@@ -116,6 +120,10 @@ func (c *selfCollector) Describe(ch chan<- *Desc) {
 
 // Collect implements Collector.
 func (c *selfCollector) Collect(ch chan<- Metric) {
+	c.CollectWithContext(context.Background(), ch)
+}
+
+func (c *selfCollector) CollectWithContext(ctx context.Context, ch chan<- Metric) {
 	ch <- c.self
 }
 

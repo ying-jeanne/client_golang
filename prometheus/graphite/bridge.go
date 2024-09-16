@@ -164,7 +164,7 @@ func (b *Bridge) Run(ctx context.Context) {
 
 // Push pushes Prometheus metrics to the configured Graphite server.
 func (b *Bridge) Push() error {
-	mfs, err := b.g.Gather()
+	mfs, err := b.g.GatherWithContext(context.TODO())
 	if err != nil || len(mfs) == 0 {
 		switch b.errorHandling {
 		case AbortOnError:

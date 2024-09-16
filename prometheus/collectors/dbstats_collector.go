@@ -14,6 +14,7 @@
 package collectors
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -105,7 +106,7 @@ func (c *dbStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 // Collect implements Collector.
-func (c *dbStatsCollector) Collect(ch chan<- prometheus.Metric) {
+func (c *dbStatsCollector) CollectWithContext(ctx context.Context, ch chan<- prometheus.Metric) {
 	stats := c.db.Stats()
 	ch <- prometheus.MustNewConstMetric(c.maxOpenConnections, prometheus.GaugeValue, float64(stats.MaxOpenConnections))
 	ch <- prometheus.MustNewConstMetric(c.openConnections, prometheus.GaugeValue, float64(stats.OpenConnections))
@@ -116,4 +117,8 @@ func (c *dbStatsCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(c.maxIdleClosed, prometheus.CounterValue, float64(stats.MaxIdleClosed))
 	ch <- prometheus.MustNewConstMetric(c.maxLifetimeClosed, prometheus.CounterValue, float64(stats.MaxLifetimeClosed))
 	ch <- prometheus.MustNewConstMetric(c.maxIdleTimeClosed, prometheus.CounterValue, float64(stats.MaxIdleTimeClosed))
+}
+
+func (c *dbStatsCollector) Collect(ch chan<- prometheus.Metric) {
+	c.CollectWithContext(context.Background(), ch)
 }

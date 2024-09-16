@@ -14,6 +14,7 @@
 package prometheus
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -146,6 +147,10 @@ func (c *processCollector) Describe(ch chan<- *Desc) {
 
 // Collect returns the current state of all metrics of the collector.
 func (c *processCollector) Collect(ch chan<- Metric) {
+	c.CollectWithContext(context.Background(), ch)
+}
+
+func (c *processCollector) CollectWithContext(ctx context.Context, ch chan<- Metric) {
 	c.collectFn(ch)
 }
 

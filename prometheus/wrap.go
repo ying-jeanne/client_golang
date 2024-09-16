@@ -14,6 +14,7 @@
 package prometheus
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -123,7 +124,7 @@ type wrappingCollector struct {
 	labels           Labels
 }
 
-func (c *wrappingCollector) Collect(ch chan<- Metric) {
+func (c *wrappingCollector) CollectWithContext(ctx context.Context, ch chan<- Metric) {
 	wrappedCh := make(chan Metric)
 	go func() {
 		c.wrappedCollector.Collect(wrappedCh)
@@ -136,6 +137,10 @@ func (c *wrappingCollector) Collect(ch chan<- Metric) {
 			labels:        c.labels,
 		}
 	}
+}
+
+func (c *wrappingCollector) Collect(ch chan<- Metric) {
+	c.CollectWithContext(context.Background(), ch)
 }
 
 func (c *wrappingCollector) Describe(ch chan<- *Desc) {

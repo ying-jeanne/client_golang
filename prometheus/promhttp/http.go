@@ -148,9 +148,11 @@ func HandlerForTransactional(reg prometheus.TransactionalGatherer, opts HandlerO
 	}
 
 	h := http.HandlerFunc(func(rsp http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
 		if !opts.ProcessStartTime.IsZero() {
 			rsp.Header().Set(processStartTimeHeader, strconv.FormatInt(opts.ProcessStartTime.Unix(), 10))
 		}
+
 		if inFlightSem != nil {
 			select {
 			case inFlightSem <- struct{}{}: // All good, carry on.
@@ -162,8 +164,10 @@ func HandlerForTransactional(reg prometheus.TransactionalGatherer, opts HandlerO
 				return
 			}
 		}
-		mfs, done, err := reg.Gather()
+
+		mfs, done, err := reg.GatherWithContext(ctx)
 		defer done()
+
 		if err != nil {
 			if opts.ErrorLog != nil {
 				opts.ErrorLog.Println("error gathering metrics:", err)
@@ -244,6 +248,7 @@ func HandlerForTransactional(reg prometheus.TransactionalGatherer, opts HandlerO
 				return
 			}
 		}
+
 	})
 
 	if opts.Timeout <= 0 {

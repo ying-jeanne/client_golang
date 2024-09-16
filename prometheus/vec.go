@@ -14,6 +14,7 @@
 package prometheus
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -125,6 +126,10 @@ func (m *MetricVec) Describe(ch chan<- *Desc) { m.metricMap.Describe(ch) }
 
 // Collect implements Collector.
 func (m *MetricVec) Collect(ch chan<- Metric) { m.metricMap.Collect(ch) }
+
+func (m *MetricVec) CollectWithContext(_ context.Context, ch chan<- Metric) {
+	m.metricMap.Collect(ch)
+}
 
 // Reset deletes all metrics in this vector.
 func (m *MetricVec) Reset() { m.metricMap.Reset() }

@@ -16,6 +16,7 @@ package promhttp
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -44,6 +45,10 @@ func (e errorCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (e errorCollector) Collect(ch chan<- prometheus.Metric) {
+	e.CollectWithContext(context.Background(), ch)
+}
+
+func (e errorCollector) CollectWithContext(_ context.Context, ch chan<- prometheus.Metric) {
 	ch <- prometheus.NewInvalidMetric(
 		prometheus.NewDesc("invalid_metric", "not helpful", nil, nil),
 		errors.New("collect error"),
@@ -58,7 +63,7 @@ func (b blockingCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- prometheus.NewDesc("dummy_desc", "not helpful", nil, nil)
 }
 
-func (b blockingCollector) Collect(ch chan<- prometheus.Metric) {
+func (b blockingCollector) CollectWithContext(_ context.Context, ch chan<- prometheus.Metric) {
 	select {
 	case b.CollectStarted <- struct{}{}:
 	default:
@@ -67,15 +72,27 @@ func (b blockingCollector) Collect(ch chan<- prometheus.Metric) {
 	<-b.Block
 }
 
+func (b blockingCollector) Collect(ch chan<- prometheus.Metric) {
+	b.CollectWithContext(context.Background(), ch)
+}
+
 type mockTransactionGatherer struct {
 	g             prometheus.Gatherer
 	gatherInvoked int
 	doneInvoked   int
+	withDelay     time.Duration
 }
 
 func (g *mockTransactionGatherer) Gather() (_ []*dto.MetricFamily, done func(), err error) {
+	return g.GatherWithContext(context.TODO())
+}
+
+func (g *mockTransactionGatherer) GatherWithContext(ctx context.Context) (_ []*dto.MetricFamily, done func(), err error) {
+	if g.withDelay > 0 {
+		time.Sleep(g.withDelay)
+	}
 	g.gatherInvoked++
-	mfs, err := g.g.Gather()
+	mfs, err := g.g.GatherWithContext(ctx)
 	return mfs, func() { g.doneInvoked++ }, err
 }
 
@@ -245,6 +262,45 @@ the_count 0
 	panicHandler.ServeHTTP(writer, request)
 }
 
+func TestContextCancellation(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	// Set the delay in the mock gatherer to be longer than the context timeout
+	mReg := &mockTransactionGatherer{g: reg, withDelay: 200 * time.Millisecond}
+	handler := InstrumentMetricHandler(reg, HandlerForTransactional(mReg, HandlerOpts{}))
+
+	w := httptest.NewRecorder()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	request, err := http.NewRequestWithContext(ctx, "GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Add("Accept", "text/plain")
+
+	c := blockingCollector{Block: make(chan struct{}), CollectStarted: make(chan struct{}, 1)}
+	reg.MustRegister(c)
+
+	// Use a goroutine to simulate handling the request
+	go func() {
+		handler.ServeHTTP(w, request)
+	}()
+	// Check for timeout or completion of the request
+	select {
+	case <-ctx.Done():
+		// Context has timed out, check if the handler responded correctly
+		if got, want := w.Code, http.StatusServiceUnavailable; got != want {
+			t.Errorf("got HTTP status code %d, want %d", got, want)
+		}
+		if got, want := w.Body.String(), "Exceeded configured timeout of 100ms.\n"; got != want {
+			t.Errorf("got body %q, want %q", got, want)
+		}
+	default:
+		fmt.Println("we got context timeout", ctx)
+	}
+
+	close(c.Block) // To not leak a goroutine.
+}
 func TestInstrumentMetricHandler(t *testing.T) {
 	reg := prometheus.NewRegistry()
 	mReg := &mockTransactionGatherer{g: reg}

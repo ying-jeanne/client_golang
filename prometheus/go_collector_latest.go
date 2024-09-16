@@ -17,6 +17,7 @@
 package prometheus
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"runtime"
@@ -302,8 +303,12 @@ func (c *goCollector) Describe(ch chan<- *Desc) {
 	}
 }
 
-// Collect returns the current state of all metrics of the collector.
 func (c *goCollector) Collect(ch chan<- Metric) {
+	c.CollectWithContext(context.Background(), ch)
+}
+
+// Collect returns the current state of all metrics of the collector.
+func (c *goCollector) CollectWithContext(ctx context.Context, ch chan<- Metric) {
 	// Collect base non-memory metrics.
 	c.base.Collect(ch)
 

@@ -15,6 +15,7 @@ package prometheus
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -158,6 +159,10 @@ type Gatherer interface {
 	// expose an incomplete result and instead disregard the returned
 	// MetricFamily protobufs in case the returned error is non-nil.
 	Gather() ([]*dto.MetricFamily, error)
+
+	// GatherWithContext calls Gather with the provided context. If the context is canceled or times out,
+	// GatherWithContext returns immediately with the error from the context.
+	GatherWithContext(ctx context.Context) ([]*dto.MetricFamily, error)
 }
 
 // Register registers the provided Collector with the DefaultRegisterer.
@@ -192,6 +197,10 @@ type GathererFunc func() ([]*dto.MetricFamily, error)
 // Gather implements Gatherer.
 func (gf GathererFunc) Gather() ([]*dto.MetricFamily, error) {
 	return gf()
+}
+
+func (gf GathererFunc) GatherWithContext(ctx context.Context) ([]*dto.MetricFamily, error) {
+	return gf.Gather()
 }
 
 // AlreadyRegisteredError is returned by the Register method if the Collector to
@@ -408,8 +417,12 @@ func (r *Registry) MustRegister(cs ...Collector) {
 	}
 }
 
-// Gather implements Gatherer.
 func (r *Registry) Gather() ([]*dto.MetricFamily, error) {
+	return r.GatherWithContext(context.Background())
+}
+
+// Gather implements Gatherer.
+func (r *Registry) GatherWithContext(ctx context.Context) ([]*dto.MetricFamily, error) {
 	r.mtx.RLock()
 
 	if len(r.collectorsByID) == 0 && len(r.uncheckedCollectors) == 0 {
@@ -453,9 +466,9 @@ func (r *Registry) Gather() ([]*dto.MetricFamily, error) {
 		for {
 			select {
 			case collector := <-checkedCollectors:
-				collector.Collect(checkedMetricChan)
+				collector.CollectWithContext(ctx, checkedMetricChan)
 			case collector := <-uncheckedCollectors:
-				collector.Collect(uncheckedMetricChan)
+				collector.CollectWithContext(ctx, uncheckedMetricChan)
 			default:
 				return
 			}
@@ -572,16 +585,20 @@ func (r *Registry) Describe(ch chan<- *Desc) {
 }
 
 // Collect implements Collector.
-func (r *Registry) Collect(ch chan<- Metric) {
+func (r *Registry) CollectWithContext(ctx context.Context, ch chan<- Metric) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 
 	for _, c := range r.collectorsByID {
-		c.Collect(ch)
+		c.CollectWithContext(ctx, ch)
 	}
 	for _, c := range r.uncheckedCollectors {
-		c.Collect(ch)
+		c.CollectWithContext(ctx, ch)
 	}
+}
+
+func (r *Registry) Collect(ch chan<- Metric) {
+	r.CollectWithContext(context.Background(), ch)
 }
 
 // WriteToTextfile calls Gather on the provided Gatherer, encodes the result in the
@@ -597,7 +614,7 @@ func WriteToTextfile(filename string, g Gatherer) error {
 	}
 	defer os.Remove(tmp.Name())
 
-	mfs, err := g.Gather()
+	mfs, err := g.GatherWithContext(context.TODO())
 	if err != nil {
 		return err
 	}
@@ -742,8 +759,12 @@ func processMetric(
 // (e.g. syntactically invalid metric or label names) will go undetected.
 type Gatherers []Gatherer
 
-// Gather implements Gatherer.
 func (gs Gatherers) Gather() ([]*dto.MetricFamily, error) {
+	return gs.GatherWithContext(context.Background())
+}
+
+// Gather implements Gatherer.
+func (gs Gatherers) GatherWithContext(ctx context.Context) ([]*dto.MetricFamily, error) {
 	var (
 		metricFamiliesByName = map[string]*dto.MetricFamily{}
 		metricHashes         = map[uint64]struct{}{}
@@ -751,7 +772,7 @@ func (gs Gatherers) Gather() ([]*dto.MetricFamily, error) {
 	)
 
 	for i, g := range gs {
-		mfs, err := g.Gather()
+		mfs, err := g.GatherWithContext(ctx)
 		if err != nil {
 			multiErr := MultiError{}
 			if errors.As(err, &multiErr) {
@@ -1009,13 +1030,17 @@ func NewMultiTRegistry(tGatherers ...TransactionalGatherer) *MultiTRegistry {
 
 // Gather implements TransactionalGatherer interface.
 func (r *MultiTRegistry) Gather() (mfs []*dto.MetricFamily, done func(), err error) {
+	return r.GatherWithContext(context.Background())
+}
+
+func (r *MultiTRegistry) GatherWithContext(ctx context.Context) (mfs []*dto.MetricFamily, done func(), err error) {
 	errs := MultiError{}
 
 	dFns := make([]func(), 0, len(r.tGatherers))
 	// TODO(bwplotka): Implement concurrency for those?
 	for _, g := range r.tGatherers {
 		// TODO(bwplotka): Check for duplicates?
-		m, d, err := g.Gather()
+		m, d, err := g.GatherWithContext(ctx)
 		errs.Append(err)
 
 		mfs = append(mfs, m...)
@@ -1058,6 +1083,8 @@ type TransactionalGatherer interface {
 	// Important: done is expected to be triggered (even if the error occurs!)
 	// once caller does not need returned slice of dto.MetricFamily.
 	Gather() (_ []*dto.MetricFamily, done func(), err error)
+
+	GatherWithContext(ctx context.Context) (_ []*dto.MetricFamily, done func(), err error)
 }
 
 // ToTransactionalGatherer transforms Gatherer to transactional one with noop as done function.
@@ -1071,6 +1098,10 @@ type noTransactionGatherer struct {
 
 // Gather implements TransactionalGatherer interface.
 func (g *noTransactionGatherer) Gather() (_ []*dto.MetricFamily, done func(), err error) {
-	mfs, err := g.g.Gather()
+	return g.GatherWithContext(context.Background())
+}
+
+func (g *noTransactionGatherer) GatherWithContext(ctx context.Context) (_ []*dto.MetricFamily, done func(), err error) {
+	mfs, err := g.g.GatherWithContext(ctx)
 	return mfs, func() {}, err
 }

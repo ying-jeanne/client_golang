@@ -14,6 +14,7 @@
 package prometheus_test
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -87,7 +88,7 @@ func (cc ClusterManagerCollector) Describe(ch chan<- *prometheus.Desc) {
 //
 // Note that Collect could be called concurrently, so we depend on
 // ReallyExpensiveAssessmentOfTheSystemState to be concurrency-safe.
-func (cc ClusterManagerCollector) Collect(ch chan<- prometheus.Metric) {
+func (cc ClusterManagerCollector) CollectWithContext(_ context.Context, ch chan<- prometheus.Metric) {
 	oomCountByHost, ramUsageByHost := cc.ClusterManager.ReallyExpensiveAssessmentOfTheSystemState()
 	for host, oomCount := range oomCountByHost {
 		ch <- prometheus.MustNewConstMetric(
@@ -105,6 +106,10 @@ func (cc ClusterManagerCollector) Collect(ch chan<- prometheus.Metric) {
 			host,
 		)
 	}
+}
+
+func (cc ClusterManagerCollector) Collect(ch chan<- prometheus.Metric) {
+	cc.CollectWithContext(context.Background(), ch)
 }
 
 // NewClusterManager first creates a Prometheus-ignorant ClusterManager

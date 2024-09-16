@@ -14,6 +14,7 @@
 package prometheus
 
 import (
+	"context"
 	"encoding/json"
 	"expvar"
 )
@@ -39,8 +40,12 @@ func (e *expvarCollector) Describe(ch chan<- *Desc) {
 	}
 }
 
-// Collect implements Collector.
 func (e *expvarCollector) Collect(ch chan<- Metric) {
+	e.CollectWithContext(context.Background(), ch)
+}
+
+// Collect implements Collector.
+func (e *expvarCollector) CollectWithContext(ctx context.Context, ch chan<- Metric) {
 	for name, desc := range e.exports {
 		var m Metric
 		expVar := expvar.Get(name)

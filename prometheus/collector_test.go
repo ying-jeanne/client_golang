@@ -13,7 +13,10 @@
 
 package prometheus
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 type collectorDescribedByCollect struct {
 	cnt Counter
@@ -21,6 +24,10 @@ type collectorDescribedByCollect struct {
 }
 
 func (c collectorDescribedByCollect) Collect(ch chan<- Metric) {
+	c.CollectWithContext(context.Background(), ch)
+}
+
+func (c collectorDescribedByCollect) CollectWithContext(_ context.Context, ch chan<- Metric) {
 	ch <- c.cnt
 	ch <- c.gge
 }

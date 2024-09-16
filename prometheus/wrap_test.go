@@ -14,6 +14,7 @@
 package prometheus
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -31,6 +32,10 @@ type uncheckedCollector struct {
 func (u uncheckedCollector) Describe(_ chan<- *Desc) {}
 func (u uncheckedCollector) Collect(c chan<- Metric) {
 	u.c.Collect(c)
+}
+
+func (u uncheckedCollector) CollectWithContext(ctx context.Context, c chan<- Metric) {
+	u.c.CollectWithContext(ctx, c)
 }
 
 func toMetricFamilies(cs ...Collector) []*dto.MetricFamily {
