@@ -26,7 +26,11 @@
       "matchManagers": ["gomod"],
       "matchPaths": ["**/go.mod"],
       "schedule": ["every month"]
-    }
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "schedule": ["every month"],
+      "packagePatterns": ["*"]
   ],
   "branchPrefix": "deps-update/",
   "vulnerabilityAlerts": {
