@@ -31,6 +31,12 @@
       "matchManagers": ["github-actions"],
       "schedule": ["every month"],
       "packagePatterns": ["*"]
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "requiredStatusChecks": ["*"]
     }
   ],
   "branchPrefix": "deps-update/",
