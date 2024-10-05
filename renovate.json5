@@ -4,10 +4,6 @@
     "config:base"
   ],
   "baseBranches": ["main", "release-1.20"],
-  "postUpdateOptions": [
-    "gomodTidy",
-    "gomodUpdateImportPaths"
-  ],
   "schedule": ["before 9am on Monday"],
   "packageRules": [
     {
