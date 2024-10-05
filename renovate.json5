@@ -22,12 +22,7 @@
       "matchManagers": ["gomod"],
       "matchPaths": ["dagger/go.mod"],
       "schedule": ["every month"],
-      "postUpdateOptions": [
-        {
-          "command": "go mod tidy",
-          "cwd": "dagger"
-        }
-      ]
+      "postUpdateOptions": ["gomodTidy1.17"]
     },
     {
       "matchManagers": ["github-actions"],
