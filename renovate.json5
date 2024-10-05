@@ -24,12 +24,13 @@
     },
     {
       "matchManagers": ["gomod"],
-      "matchPaths": ["**/go.mod"],
+      "matchPaths": ["dagger/go.mod"],
       "schedule": ["every month"]
       "postUpdateOptions": [
-        "gomodTidy",
-        "gomodUpdateImportPaths"
-      ],
+        {
+          "command": "go mod tidy",
+          "cwd": "dagger"
+        },
     },
     {
       "matchManagers": ["github-actions"],
