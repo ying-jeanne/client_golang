@@ -21,7 +21,7 @@
     {
       "matchManagers": ["gomod"],
       "matchPaths": ["dagger/go.mod"],
-      "schedule": ["every month"]
+      "schedule": ["every month"],
       "postUpdateOptions": [
         {
           "command": "go mod tidy",
