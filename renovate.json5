@@ -31,6 +31,7 @@
       "matchManagers": ["github-actions"],
       "schedule": ["every month"],
       "packagePatterns": ["*"]
+    }
   ],
   "branchPrefix": "deps-update/",
   "vulnerabilityAlerts": {
