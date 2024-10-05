@@ -3,7 +3,7 @@
   "extends": [
     "config:base"
   ],
-  "baseBranches": ["main", "release-2.14"],
+  "baseBranches": ["main", "release-1.20"],
   "postUpdateOptions": [
     "gomodTidy",
     "gomodUpdateImportPaths"
@@ -11,14 +11,8 @@
   "schedule": ["before 9am on Monday"],
   "packageRules": [
     {
-      "matchBaseBranches": ["release-2.14"],
+      "matchBaseBranches": ["release-1.20"],
       "packagePatterns": ["*"],
-      "enabled": false
-    },
-    {
-      "matchPackageNames": [
-        "github.com/grafana/mimir-prometheus",
-      ],
       "enabled": false
     },
     // Pin Go at the current version, since we want to upgrade it manually.
