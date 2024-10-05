@@ -21,6 +21,16 @@
       "matchDatasources": ["docker", "golang-version"],
       "matchPackageNames": ["go", "golang"],
       "allowedVersions": "<=1.22.5"
+    },
+    {
+      "matchManagers": ["gomod"],
+      "matchPaths": ["**/go.mod"],
+      "schedule": ["every month"]
+    },
+    {
+      "matchManagers": ["github-runners"],
+      "schedule": ["every month"],
+      "packagePatterns": ["*"]
     }
   ],
   "branchPrefix": "deps-update/",
