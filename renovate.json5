@@ -26,11 +26,6 @@
       "matchManagers": ["gomod"],
       "matchPaths": ["**/go.mod"],
       "schedule": ["every month"]
-    },
-    {
-      "matchManagers": ["github-runners"],
-      "schedule": ["every month"],
-      "packagePatterns": ["*"]
     }
   ],
   "branchPrefix": "deps-update/",
