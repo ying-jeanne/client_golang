@@ -26,6 +26,10 @@
       "matchManagers": ["gomod"],
       "matchPaths": ["**/go.mod"],
       "schedule": ["every month"]
+      "postUpdateOptions": [
+        "gomodTidy",
+        "gomodUpdateImportPaths"
+      ],
     },
     {
       "matchManagers": ["github-actions"],
