@@ -63,6 +63,8 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
 github.com/efficientgo/core v1.0.0-rc.2 h1:7j62qHLnrZqO3V3UA0AqOGd5d5aXV3AX6m/NZBHp78I=
 github.com/efficientgo/core v1.0.0-rc.2/go.mod h1:FfGdkzWarkuzOlY04VY+bGfb1lWrjaL6x/GLcQ4vJps=
+github.com/efficientgo/core v1.0.0-rc.3 h1:X6CdgycYWDcbYiJr1H1+lQGzx13o7bq3EUkbB9DsSPc=
+github.com/efficientgo/core v1.0.0-rc.3/go.mod h1:FfGdkzWarkuzOlY04VY+bGfb1lWrjaL6x/GLcQ4vJps=
 github.com/efficientgo/e2e v0.14.1-0.20230421070206-d72d43f3b937 h1:id4ofFoEdjDgOvGhRi24PozN2kzsIriHDKc+HP6ipHo=
 github.com/efficientgo/e2e v0.14.1-0.20230421070206-d72d43f3b937/go.mod h1:plsKU0YHE9uX+7utvr7SiDtVBSHJyEfHRO4UnUgDmts=
 github.com/efficientgo/tools/core v0.0.0-20220225185207-fe763185946b h1:ZHiD4/yE4idlbqvAO6iYCOYRzOMRpxkW+FKasRA3tsQ=
