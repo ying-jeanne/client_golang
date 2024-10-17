@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/bwplotka/tracing-go v0.0.0-20230421061608-abdf862ceccd
 	github.com/efficientgo/core v1.0.0-rc.3
-	github.com/efficientgo/e2e v0.14.1-0.20230421070206-d72d43f3b937
+	github.com/efficientgo/e2e v0.14.1-0.20240418111536-97db25a0c6c0
 	github.com/oklog/run v1.1.0
 	github.com/prometheus/client_golang v1.19.1
 	github.com/prometheus/common v0.55.0

@@ -67,6 +67,8 @@ github.com/efficientgo/core v1.0.0-rc.3 h1:X6CdgycYWDcbYiJr1H1+lQGzx13o7bq3EUkbB
 github.com/efficientgo/core v1.0.0-rc.3/go.mod h1:FfGdkzWarkuzOlY04VY+bGfb1lWrjaL6x/GLcQ4vJps=
 github.com/efficientgo/e2e v0.14.1-0.20230421070206-d72d43f3b937 h1:id4ofFoEdjDgOvGhRi24PozN2kzsIriHDKc+HP6ipHo=
 github.com/efficientgo/e2e v0.14.1-0.20230421070206-d72d43f3b937/go.mod h1:plsKU0YHE9uX+7utvr7SiDtVBSHJyEfHRO4UnUgDmts=
+github.com/efficientgo/e2e v0.14.1-0.20240418111536-97db25a0c6c0 h1:C/FNIs+MtAJgQYLJ9FX/ACFYyDRuLYoXTmueErrOJyA=
+github.com/efficientgo/e2e v0.14.1-0.20240418111536-97db25a0c6c0/go.mod h1:plsKU0YHE9uX+7utvr7SiDtVBSHJyEfHRO4UnUgDmts=
 github.com/efficientgo/tools/core v0.0.0-20220225185207-fe763185946b h1:ZHiD4/yE4idlbqvAO6iYCOYRzOMRpxkW+FKasRA3tsQ=
 github.com/efficientgo/tools/core v0.0.0-20220225185207-fe763185946b/go.mod h1:OmVcnJopJL8d3X3sSXTiypGoUSgFq1aDGmlrdi9dn/M=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
