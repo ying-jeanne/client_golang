@@ -1,6 +1,8 @@
 module github.com/prometheus/client_golang/tutorials/whatsup
 
-go 1.21
+go 1.23.0
+
+toolchain go1.24.1
 
 require (
 	github.com/bwplotka/tracing-go v0.0.0-20230421061608-abdf862ceccd
@@ -44,7 +46,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.7.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.15.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/oauth2 v0.21.0 // indirect
+	golang.org/x/oauth2 v0.27.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
