@@ -475,13 +475,13 @@ type API interface {
 	// Flags returns the flag values that Prometheus was launched with.
 	Flags(ctx context.Context) (FlagsResult, error)
 	// LabelNames returns the unique label names present in the block in sorted order by given time range and matchers.
-	LabelNames(ctx context.Context, matches []string, startTime, endTime time.Time, opts ...Option) ([]string, Annotations, error)
+	LabelNames(ctx context.Context, matches []string, startTime, endTime time.Time, opts ...Option) ([]string, Warnings, error)
 	// LabelValues performs a query for the values of the given label, time range and matchers.
-	LabelValues(ctx context.Context, label string, matches []string, startTime, endTime time.Time, opts ...Option) (model.LabelValues, Annotations, error)
+	LabelValues(ctx context.Context, label string, matches []string, startTime, endTime time.Time, opts ...Option) (model.LabelValues, Warnings, error)
 	// Query performs a query for the given time.
-	Query(ctx context.Context, query string, ts time.Time, opts ...Option) (model.Value, Annotations, error)
+	Query(ctx context.Context, query string, ts time.Time, opts ...Option) (model.Value, Warnings, error)
 	// QueryRange performs a query for the given range.
-	QueryRange(ctx context.Context, query string, r Range, opts ...Option) (model.Value, Annotations, error)
+	QueryRange(ctx context.Context, query string, r Range, opts ...Option) (model.Value, Warnings, error)
 	// QueryExemplars performs a query for exemplars by the given query and time range.
 	QueryExemplars(ctx context.Context, query string, startTime, endTime time.Time) ([]ExemplarQueryResult, error)
 	// Buildinfo returns various build information properties about the Prometheus server
@@ -489,7 +489,7 @@ type API interface {
 	// Runtimeinfo returns the various runtime information properties about the Prometheus server.
 	Runtimeinfo(ctx context.Context) (RuntimeinfoResult, error)
 	// Series finds series by label matchers.
-	Series(ctx context.Context, matches []string, startTime, endTime time.Time, opts ...Option) ([]model.LabelSet, Annotations, error)
+	Series(ctx context.Context, matches []string, startTime, endTime time.Time, opts ...Option) ([]model.LabelSet, Warnings, error)
 	// Snapshot creates a snapshot of all current data into snapshots/<datetime>-<rand>
 	// under the TSDB's data directory and returns the directory as response.
 	Snapshot(ctx context.Context, skipHead bool) (SnapshotResult, error)
@@ -1024,7 +1024,7 @@ func (h *httpAPI) Runtimeinfo(ctx context.Context) (RuntimeinfoResult, error) {
 	return res, err
 }
 
-func (h *httpAPI) LabelNames(ctx context.Context, matches []string, startTime, endTime time.Time, opts ...Option) ([]string, Annotations, error) {
+func (h *httpAPI) LabelNames(ctx context.Context, matches []string, startTime, endTime time.Time, opts ...Option) ([]string, Warnings, error) {
 	u := h.client.URL(epLabels, nil)
 	q := addOptionalURLParams(u.Query(), opts)
 
@@ -1047,7 +1047,7 @@ func (h *httpAPI) LabelNames(ctx context.Context, matches []string, startTime, e
 	return labelNames, w, err
 }
 
-func (h *httpAPI) LabelValues(ctx context.Context, label string, matches []string, startTime, endTime time.Time, opts ...Option) (model.LabelValues, Annotations, error) {
+func (h *httpAPI) LabelValues(ctx context.Context, label string, matches []string, startTime, endTime time.Time, opts ...Option) (model.LabelValues, Warnings, error) {
 	u := h.client.URL(epLabelValues, map[string]string{"name": label})
 	q := addOptionalURLParams(u.Query(), opts)
 
@@ -1065,7 +1065,7 @@ func (h *httpAPI) LabelValues(ctx context.Context, label string, matches []strin
 
 	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
-		return nil, Annotations{}, err
+		return nil, nil, err
 	}
 	_, body, w, err := h.client.Do(ctx, req)
 	if err != nil {
@@ -1152,7 +1152,7 @@ func addOptionalURLParams(q url.Values, opts []Option) url.Values {
 	return q
 }
 
-func (h *httpAPI) Query(ctx context.Context, query string, ts time.Time, opts ...Option) (model.Value, Annotations, error) {
+func (h *httpAPI) Query(ctx context.Context, query string, ts time.Time, opts ...Option) (model.Value, Warnings, error) {
 	u := h.client.URL(epQuery, nil)
 	q := addOptionalURLParams(u.Query(), opts)
 
@@ -1170,7 +1170,7 @@ func (h *httpAPI) Query(ctx context.Context, query string, ts time.Time, opts ..
 	return qres.v, warnings, json.Unmarshal(body, &qres)
 }
 
-func (h *httpAPI) QueryRange(ctx context.Context, query string, r Range, opts ...Option) (model.Value, Annotations, error) {
+func (h *httpAPI) QueryRange(ctx context.Context, query string, r Range, opts ...Option) (model.Value, Warnings, error) {
 	u := h.client.URL(epQueryRange, nil)
 	q := addOptionalURLParams(u.Query(), opts)
 
@@ -1188,7 +1188,7 @@ func (h *httpAPI) QueryRange(ctx context.Context, query string, r Range, opts ..
 	return qres.v, warnings, json.Unmarshal(body, &qres)
 }
 
-func (h *httpAPI) Series(ctx context.Context, matches []string, startTime, endTime time.Time, opts ...Option) ([]model.LabelSet, Annotations, error) {
+func (h *httpAPI) Series(ctx context.Context, matches []string, startTime, endTime time.Time, opts ...Option) ([]model.LabelSet, Warnings, error) {
 	u := h.client.URL(epSeries, nil)
 	q := addOptionalURLParams(u.Query(), opts)
 
@@ -1380,18 +1380,15 @@ func (h *httpAPI) QueryExemplars(ctx context.Context, query string, startTime, e
 	return res, err
 }
 
-type Annotations struct {
-	// Warnings is an array of non critical errors
-	Warnings []string
-	Infos    []string
-}
+// Warnings is an array of non critical errors
+type Warnings []string
 
 // apiClient wraps a regular client and processes successful API responses.
 // Successful also includes responses that errored at the API level.
 type apiClient interface {
 	URL(ep string, args map[string]string) *url.URL
-	Do(context.Context, *http.Request) (*http.Response, []byte, Annotations, error)
-	DoGetFallback(ctx context.Context, u *url.URL, args url.Values) (*http.Response, []byte, Annotations, error)
+	Do(context.Context, *http.Request) (*http.Response, []byte, Warnings, error)
+	DoGetFallback(ctx context.Context, u *url.URL, args url.Values) (*http.Response, []byte, Warnings, error)
 }
 
 type apiClientImpl struct {
@@ -1399,11 +1396,11 @@ type apiClientImpl struct {
 }
 
 type apiResponse struct {
-	Status      string          `json:"status"`
-	Data        json.RawMessage `json:"data"`
-	ErrorType   ErrorType       `json:"errorType"`
-	Error       string          `json:"error"`
-	Annotations Annotations     `json:"annotations,omitempty"`
+	Status    string          `json:"status"`
+	Data      json.RawMessage `json:"data"`
+	ErrorType ErrorType       `json:"errorType"`
+	Error     string          `json:"error"`
+	Warnings  []string        `json:"warnings,omitempty"`
 }
 
 func apiError(code int) bool {
@@ -1425,17 +1422,17 @@ func (h *apiClientImpl) URL(ep string, args map[string]string) *url.URL {
 	return h.client.URL(ep, args)
 }
 
-func (h *apiClientImpl) Do(ctx context.Context, req *http.Request) (*http.Response, []byte, Annotations, error) {
+func (h *apiClientImpl) Do(ctx context.Context, req *http.Request) (*http.Response, []byte, Warnings, error) {
 	resp, body, err := h.client.Do(ctx, req)
 	if err != nil {
-		return resp, body, Annotations{}, err
+		return resp, body, nil, err
 	}
 
 	code := resp.StatusCode
 
 	if code/100 != 2 && !apiError(code) {
 		errorType, errorMsg := errorTypeAndMsgFor(resp)
-		return resp, body, Annotations{}, &Error{
+		return resp, body, nil, &Error{
 			Type:   errorType,
 			Msg:    errorMsg,
 			Detail: string(body),
@@ -1446,7 +1443,7 @@ func (h *apiClientImpl) Do(ctx context.Context, req *http.Request) (*http.Respon
 
 	if http.StatusNoContent != code {
 		if jsonErr := json.Unmarshal(body, &result); jsonErr != nil {
-			return resp, body, Annotations{}, &Error{
+			return resp, body, nil, &Error{
 				Type: ErrBadResponse,
 				Msg:  jsonErr.Error(),
 			}
@@ -1467,16 +1464,16 @@ func (h *apiClientImpl) Do(ctx context.Context, req *http.Request) (*http.Respon
 		}
 	}
 
-	return resp, []byte(result.Data), result.Annotations, err
+	return resp, []byte(result.Data), result.Warnings, err
 }
 
 // DoGetFallback will attempt to do the request as-is, and on a 405 or 501 it
 // will fallback to a GET request.
-func (h *apiClientImpl) DoGetFallback(ctx context.Context, u *url.URL, args url.Values) (*http.Response, []byte, Annotations, error) {
+func (h *apiClientImpl) DoGetFallback(ctx context.Context, u *url.URL, args url.Values) (*http.Response, []byte, Warnings, error) {
 	encodedArgs := args.Encode()
 	req, err := http.NewRequest(http.MethodPost, u.String(), strings.NewReader(encodedArgs))
 	if err != nil {
-		return nil, nil, Annotations{}, err
+		return nil, nil, nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	// Following comment originates from https://pkg.go.dev/net/http#Transport

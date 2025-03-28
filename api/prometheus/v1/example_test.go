@@ -42,13 +42,13 @@ func ExampleAPI_query() {
 	v1api := v1.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	result, annotations, err := v1api.Query(ctx, "up", time.Now(), v1.WithTimeout(5*time.Second))
+	result, warnings, err := v1api.Query(ctx, "up", time.Now(), v1.WithTimeout(5*time.Second))
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
 	}
-	if len(annotations.Warnings) > 0 {
-		fmt.Printf("Warnings: %v\n", annotations.Warnings)
+	if len(warnings) > 0 {
+		fmt.Printf("Warnings: %v\n", warnings)
 	}
 	fmt.Printf("Result:\n%v\n", result)
 }
@@ -70,13 +70,13 @@ func ExampleAPI_queryRange() {
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r, v1.WithTimeout(5*time.Second))
+	result, warnings, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r, v1.WithTimeout(5*time.Second))
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
 	}
-	if len(annotations.Warnings) > 0 {
-		fmt.Printf("Warnings: %v\n", annotations.Warnings)
+	if len(warnings) > 0 {
+		fmt.Printf("Warnings: %v\n", warnings)
 	}
 	fmt.Printf("Result:\n%v\n", result)
 }
@@ -122,13 +122,13 @@ func ExampleAPI_queryRangeWithUserAgent() {
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
+	result, warnings, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
 	}
-	if len(annotations.Warnings) > 0 {
-		fmt.Printf("Warnings: %v\n", annotations.Warnings)
+	if len(warnings) > 0 {
+		fmt.Printf("Warnings: %v\n", warnings)
 	}
 	fmt.Printf("Result:\n%v\n", result)
 }
@@ -156,13 +156,13 @@ func ExampleAPI_queryRangeWithBasicAuth() {
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
+	result, warnings, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
 	}
-	if len(annotations.Warnings) > 0 {
-		fmt.Printf("Warnings: %v\n", annotations.Warnings)
+	if len(warnings) > 0 {
+		fmt.Printf("Warnings: %v\n", warnings)
 	}
 	fmt.Printf("Result:\n%v\n", result)
 }
@@ -190,13 +190,13 @@ func ExampleAPI_queryRangeWithAuthBearerToken() {
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
+	result, warnings, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
 	}
-	if len(annotations.Warnings) > 0 {
-		fmt.Printf("Warnings: %v\n", annotations.Warnings)
+	if len(warnings) > 0 {
+		fmt.Printf("Warnings: %v\n", warnings)
 	}
 	fmt.Printf("Result:\n%v\n", result)
 }
@@ -229,13 +229,13 @@ func ExampleAPI_queryRangeWithAuthBearerTokenHeadersRoundTripper() {
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
+	result, warnings, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
 	}
-	if len(annotations.Warnings) > 0 {
-		fmt.Printf("Warnings: %v\n", annotations.Warnings)
+	if len(warnings) > 0 {
+		fmt.Printf("Warnings: %v\n", warnings)
 	}
 	fmt.Printf("Result:\n%v\n", result)
 }
@@ -252,7 +252,7 @@ func ExampleAPI_series() {
 	v1api := v1.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	lbls, annotations, err := v1api.Series(ctx, []string{
+	lbls, warnings, err := v1api.Series(ctx, []string{
 		"{__name__=~\"scrape_.+\",job=\"node\"}",
 		"{__name__=~\"scrape_.+\",job=\"prometheus\"}",
 	}, time.Now().Add(-time.Hour), time.Now())
@@ -260,8 +260,8 @@ func ExampleAPI_series() {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
 	}
-	if len(annotations.Warnings) > 0 {
-		fmt.Printf("Warnings: %v\n", annotations.Warnings)
+	if len(warnings) > 0 {
+		fmt.Printf("Warnings: %v\n", warnings)
 	}
 	fmt.Println("Result:")
 	for _, lbl := range lbls {
