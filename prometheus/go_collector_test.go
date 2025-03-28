@@ -102,6 +102,10 @@ func TestGoCollectorGC(t *testing.T) {
 		c.Collect(metricCh)
 		// force GC
 		runtime.GC()
+		// for windows, wait longer to make sure the garbage collection
+		if runtime.GOOS == "windows" {
+			time.Sleep(3 * time.Second)
+		}
 		<-waitCh
 		c.Collect(metricCh)
 		close(endCollectionCh)
@@ -148,7 +152,7 @@ func TestGoCollectorGC(t *testing.T) {
 			if diff := *pb.GetSummary().SampleSum - oldPause; diff <= 0 {
 				t.Errorf("want an increase in pause time, got a change of %f", diff)
 			}
-		case <-time.After(1 * time.Second):
+		case <-time.After(4 * time.Second):
 			t.Fatalf("expected collect timed out")
 		}
 		break

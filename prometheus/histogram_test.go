@@ -55,6 +55,11 @@ func benchmarkHistogramObserve(w int, b *testing.B) {
 		}()
 	}
 
+	// Extra delay for Windows to ensure synchronization
+	if runtime.GOOS == "windows" {
+		time.Sleep(50 * time.Millisecond)
+	}
+
 	b.StartTimer()
 	g.Done()
 	wg.Wait()

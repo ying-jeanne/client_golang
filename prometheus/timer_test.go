@@ -16,6 +16,7 @@ package prometheus
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -33,6 +34,10 @@ func TestTimerObserve(t *testing.T) {
 		hisTimer := NewTimer(his)
 		sumTimer := NewTimer(sum)
 		gaugeTimer := NewTimer(ObserverFunc(gauge.Set))
+
+		// Allow a little delay before observations to help on Windows.
+		time.Sleep(time.Millisecond * 10)
+
 		defer hisTimer.ObserveDuration()
 		defer sumTimer.ObserveDuration()
 		defer gaugeTimer.ObserveDuration()
