@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "baseBranches": ["main", "release-1.20"],
+  "schedule": ["before 9am on Monday"],
+  "packageRules": [
+    {
+      "matchBaseBranches": ["release-1.20"],
+      "packagePatterns": ["*"],
+      "enabled": false
+    },
+    // Pin Go at the current version, since we want to upgrade it manually.
+    // Remember to keep this in sync when upgrading our Go version!
+    {
+      "matchDatasources": ["docker", "golang-version"],
+      "matchPackageNames": ["go", "golang"],
+      "allowedVersions": "<=1.22.5"
+    },
+    {
+      "matchManagers": ["gomod"],
+      "matchPaths": ["dagger/go.mod"],
+      "schedule": ["every month"],
+      "postUpdateOptions": ["gomodTidy1.17"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "schedule": ["every month"],
+      "packagePatterns": ["*"]
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "requiredStatusChecks": ["*"]
+    }
+  ],
+  "branchPrefix": "deps-update/",
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security-update"]
+  },
+  "osvVulnerabilityAlerts": true
+}
