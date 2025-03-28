@@ -87,6 +87,8 @@ type CloseIdler interface {
 // NewClient returns a new Client.
 //
 // It is safe to use the returned Client from multiple goroutines.
+//
+// Deprecated: Use apiv2.NewClient instead.
 func NewClient(cfg Config) (Client, error) {
 	u, err := url.Parse(cfg.Address)
 	if err != nil {

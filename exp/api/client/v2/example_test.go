@@ -13,7 +13,7 @@
 
 // Package v1_test provides examples making requests to Prometheus using the
 // Golang client.
-package v1_test
+package v2_test
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 	"github.com/prometheus/common/config"
 
 	"github.com/prometheus/client_golang/api"
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	v2 "github.com/prometheus/client_golang/exp/api/client/v2"
 )
 
 const DemoPrometheusURL = "https://demo.prometheus.io:443"
@@ -39,10 +39,10 @@ func ExampleAPI_query() {
 		os.Exit(1)
 	}
 
-	v1api := v1.NewAPI(client)
+	v2api := v2.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	result, annotations, err := v1api.Query(ctx, "up", time.Now(), v1.WithTimeout(5*time.Second))
+	result, annotations, err := v2api.Query(ctx, "up", time.Now(), v2.WithTimeout(5*time.Second))
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
@@ -62,15 +62,15 @@ func ExampleAPI_queryRange() {
 		os.Exit(1)
 	}
 
-	v1api := v1.NewAPI(client)
+	v2api := v2.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	r := v1.Range{
+	r := v2.Range{
 		Start: time.Now().Add(-time.Hour),
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r, v1.WithTimeout(5*time.Second))
+	result, annotations, err := v2api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r, v2.WithTimeout(5*time.Second))
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
@@ -114,15 +114,15 @@ func ExampleAPI_queryRangeWithUserAgent() {
 		os.Exit(1)
 	}
 
-	v1api := v1.NewAPI(client)
+	v2api := v2.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	r := v1.Range{
+	r := v2.Range{
 		Start: time.Now().Add(-time.Hour),
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
+	result, annotations, err := v2api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
@@ -148,15 +148,15 @@ func ExampleAPI_queryRangeWithBasicAuth() {
 		os.Exit(1)
 	}
 
-	v1api := v1.NewAPI(client)
+	v2api := v2.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	r := v1.Range{
+	r := v2.Range{
 		Start: time.Now().Add(-time.Hour),
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
+	result, annotations, err := v2api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
@@ -182,15 +182,15 @@ func ExampleAPI_queryRangeWithAuthBearerToken() {
 		os.Exit(1)
 	}
 
-	v1api := v1.NewAPI(client)
+	v2api := v2.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	r := v1.Range{
+	r := v2.Range{
 		Start: time.Now().Add(-time.Hour),
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
+	result, annotations, err := v2api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
@@ -221,15 +221,15 @@ func ExampleAPI_queryRangeWithAuthBearerTokenHeadersRoundTripper() {
 		os.Exit(1)
 	}
 
-	v1api := v1.NewAPI(client)
+	v2api := v2.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	r := v1.Range{
+	r := v2.Range{
 		Start: time.Now().Add(-time.Hour),
 		End:   time.Now(),
 		Step:  time.Minute,
 	}
-	result, annotations, err := v1api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
+	result, annotations, err := v2api.QueryRange(ctx, "rate(prometheus_tsdb_head_samples_appended_total[5m])", r)
 	if err != nil {
 		fmt.Printf("Error querying Prometheus: %v\n", err)
 		os.Exit(1)
@@ -249,10 +249,10 @@ func ExampleAPI_series() {
 		os.Exit(1)
 	}
 
-	v1api := v1.NewAPI(client)
+	v2api := v2.NewAPI(client)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	lbls, annotations, err := v1api.Series(ctx, []string{
+	lbls, annotations, err := v2api.Series(ctx, []string{
 		"{__name__=~\"scrape_.+\",job=\"node\"}",
 		"{__name__=~\"scrape_.+\",job=\"prometheus\"}",
 	}, time.Now().Add(-time.Hour), time.Now())

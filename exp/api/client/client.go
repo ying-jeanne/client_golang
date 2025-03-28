@@ -12,7 +12,7 @@
 // limitations under the License.
 
 // Package api provides clients for the HTTP APIs.
-package api
+package client
 
 import (
 	"bytes"

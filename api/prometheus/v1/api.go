@@ -866,6 +866,8 @@ type ExemplarQueryResult struct {
 // NewAPI returns a new API for the client.
 //
 // It is safe to use the returned API from multiple goroutines.
+//
+// Deprecated: Use apiv2.NewAPI instead.
 func NewAPI(c api.Client) API {
 	return &httpAPI{
 		client: &apiClientImpl{

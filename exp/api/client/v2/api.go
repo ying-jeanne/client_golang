@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package v1 provides bindings to the Prometheus HTTP API v1:
+// Package v2 provides bindings to the Prometheus HTTP API v2:
 // http://prometheus.io/docs/querying/api/
-package v1
+package v2
 
 import (
 	"context"
