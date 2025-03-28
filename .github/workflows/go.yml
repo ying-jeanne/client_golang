@@ -37,11 +37,9 @@ jobs:
       matrix:
         go_version: ${{ fromJSON(needs.supportedVersions.outputs.supported_versions) }}
         os: [ubuntu-latest, macos-latest, windows-latest] # Matrix for OS
-  
+        cgo: [0, 1]  # 0 for CGO disabled, 1 for CGO enabled
     runs-on: ${{ matrix.os }}
     needs: supportedVersions
-
-
 
     steps:
       - name: Checkout code
@@ -59,6 +57,34 @@ jobs:
           path: ~/go/pkg/mod
           key: v1-go${{ matrix.go_version }}
 
+      - name: Set environment variables for platform and CGO
+        run: |
+          echo "Setting environment variables for ${{ matrix.os }} with CGO_ENABLED=${{ matrix.cgo }}"
+          if [[ ${{ matrix.os }} == 'macos-latest' ]]; then
+            if [[ ${{ matrix.cgo }} == 1 ]]; then
+              echo "CGO_ENABLED=1" >> $GITHUB_ENV
+              echo "GOOS=darwin" >> $GITHUB_ENV
+              echo "GOARCH=amd64" >> $GITHUB_ENV
+              # Add any other macOS specific envs for CGO here
+            else
+              echo "CGO_ENABLED=0" >> $GITHUB_ENV
+              echo "GOOS=darwin" >> $GITHUB_ENV
+              echo "GOARCH=amd64" >> $GITHUB_ENV
+              # Add any other macOS specific envs for no CGO here
+            fi
+          elif [[ ${{ matrix.os }} == 'windows-latest' ]]; then
+            echo "CGO_ENABLED=1" >> $GITHUB_ENV
+            echo "GOOS=windows" >> $GITHUB_ENV
+            echo "GOARCH=amd64" >> $GITHUB_ENV
+            # Add any other Windows specific envs here
+          elif [[ ${{ matrix.os }} == 'ubuntu-latest' ]]; then
+            echo "CGO_ENABLED=0" >> $GITHUB_ENV
+            echo "GOOS=linux" >> $GITHUB_ENV
+            echo "GOARCH=amd64" >> $GITHUB_ENV
+            # Add any other Linux-specific envs here
+          fi
+        shell: bash
+  
       - name: Run tests and check license
         run: make check_license test
         env:
