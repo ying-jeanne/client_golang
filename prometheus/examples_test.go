@@ -513,7 +513,7 @@ func ExampleNewConstHistogramWithCreatedTimestamp() {
 	// {"label":[{"name":"code","value":"200"},{"name":"method","value":"get"},{"name":"owner","value":"example"}],"histogram":{"sampleCount":"4711","sampleSum":403.34,"bucket":[{"cumulativeCount":"121","upperBound":25},{"cumulativeCount":"2403","upperBound":50},{"cumulativeCount":"3221","upperBound":100},{"cumulativeCount":"4233","upperBound":200}],"createdTimestamp":"2024-06-29T14:19:24.000000123Z"}}
 }
 
-func ExampleNewConstHistogram_WithExemplar() {
+func ExampleNewConstHistogram_withExemplar() {
 	desc := prometheus.NewDesc(
 		"http_request_duration_seconds",
 		"A histogram of the HTTP request durations.",
@@ -735,4 +735,52 @@ func ExampleNewConstMetricWithCreatedTimestamp() {
 
 	// Output:
 	// {"counter":{"value":1257894000,"createdTimestamp":"1970-01-01T00:00:00Z"}}
+}
+
+// Using CollectorFunc that registers the metric info for the HTTP requests.
+func ExampleCollectorFunc() {
+	desc := prometheus.NewDesc(
+		"http_requests_info",
+		"Information about the received HTTP requests.",
+		[]string{"code", "method"},
+		nil,
+	)
+
+	// Example 1: 42 GET requests with 200 OK status code.
+	collector := prometheus.CollectorFunc(func(ch chan<- prometheus.Metric) {
+		ch <- prometheus.MustNewConstMetric(
+			desc,
+			prometheus.CounterValue, // Metric type: Counter
+			42,                      // Value
+			"200",                   // Label value: HTTP status code
+			"GET",                   // Label value: HTTP method
+		)
+
+		// Example 2: 15 POST requests with 404 Not Found status code.
+		ch <- prometheus.MustNewConstMetric(
+			desc,
+			prometheus.CounterValue,
+			15,
+			"404",
+			"POST",
+		)
+	})
+
+	prometheus.MustRegister(collector)
+
+	// Just for demonstration, let's check the state of the metric by registering
+	// it with a custom registry and then let it collect the metrics.
+
+	reg := prometheus.NewRegistry()
+	reg.MustRegister(collector)
+
+	metricFamilies, err := reg.Gather()
+	if err != nil || len(metricFamilies) != 1 {
+		panic("unexpected behavior of custom test registry")
+	}
+
+	fmt.Println(toNormalizedJSON(sanitizeMetricFamily(metricFamilies[0])))
+
+	// Output:
+	// {"name":"http_requests_info","help":"Information about the received HTTP requests.","type":"COUNTER","metric":[{"label":[{"name":"code","value":"200"},{"name":"method","value":"GET"}],"counter":{"value":42}},{"label":[{"name":"code","value":"404"},{"name":"method","value":"POST"}],"counter":{"value":15}}]}
 }
