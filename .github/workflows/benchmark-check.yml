@@ -1,0 +1,45 @@
+name: Benchmark Regression Check
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # important to access main branch
+
+      - name: Set up Go
+        uses: actions/setup-go@v5.4.0
+        with:
+            go-version: '1.24'
+            check-latest: true
+            cache-dependency-path: go.sum
+
+      - name: Install benchstat
+        run: go install golang.org/x/perf/cmd/benchstat@latest
+
+      - name: Run benchmarks on PR branch
+        run: go test -bench=. -benchmem ./... > pr.txt
+
+      - name: Create worktree for origin/main
+        run: |
+          git fetch origin main
+          git worktree add ../main-worktree origin/main
+
+      - name: Run benchmark for origin/main
+        run: |
+          cd ../main-worktree
+          go test -bench=BenchmarkSamplesJsonSerialization -benchmem ./... > ../main.txt
+          cd -
+          rm -rf ../main-worktree
+
+      - name: Check for regressions
+        run: |
+          ls -l
+          bash .github/workflows/check-bench.sh ../main.txt pr.txt
